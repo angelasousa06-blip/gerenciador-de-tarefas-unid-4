@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Vue.js - Gerenciador de Tarefas</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #f5f5f5;
+            color: #222;
+        }
+
+        .cabecalho {
+            background-color: #1f2937;
+            color: white;
+            padding: 32px 0;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            width: min(1000px, 92%);
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .texto-apoio {
+            color: #666;
+        }
+
+        .campo {
+            margin-bottom: 18px;
+        }
+
+        .campo label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .campo input,
+        .campo textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bbb;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            border: none;
+            padding: 10px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            background-color: #2563eb;
+            color: white;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        button.secundario {
+            background-color: #4b5563;
+        }
+
+        button.sucesso {
+            background-color: #15803d;
+        }
+
+        .erro {
+            background-color: #fee2e2;
+            border: 1px solid #991b1b;
+            color: #7f1d1d;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .carregando {
+            background-color: #eff6ff;
+            border: 1px solid #1d4ed8;
+            color: #1e3a8a;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .topo-lista {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .lista-tarefas {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .tarefa {
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            padding: 16px;
+        }
+
+        .tarefa-concluida {
+            background-color: #f0fdf4;
+        }
+
+        .tarefa-concluida h3 {
+            text-decoration: line-through;
+        }
+
+        .status {
+            display: inline-block;
+            font-size: 14px;
+            margin: 8px 0;
+            font-weight: bold;
+        }
+
+        .vazio {
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            border: 1px dashed #bbb;
+        }
+
+        .acoes {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 600px) {
+            .topo-lista,
+            .acoes {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="cabecalho">
+        <div class="container">
+            <h1>Gerenciador de Tarefas com Vue.js</h1>
+
+            <p>
+                Desenvolvimento Web III —
+                Unidade 4: Framework do Lado do Cliente
+            </p>
+        </div>
+    </header>
+
+    <main
+        id="app"
+        class="container"
+    >
+
+        <section class="card">
+
+            <h2>{{ tituloPagina }}</h2>
+
+            <p class="texto-apoio">
+                Esta página é controlada pelo Vue.js.
+                Os dados são carregados da API Express e persistidos no MariaDB.
+            </p>
+
+            <div
+                v-if="carregando"
+                class="carregando"
+            >
+                Carregando dados da API...
+            </div>
+
+            <div
+                v-if="erro"
+                class="erro"
+            >
+                {{ erro }}
+            </div>
+
+            <div class="acoes">
+                <button
+                    type="button"
+                    class="secundario"
+                    @click="carregarTarefas"
+                >
+                    Recarregar tarefas
+                </button>
+
+                <a href="/">
+                    Voltar para interface EJS
+                </a>
+            </div>
+
+        </section>
+
+        <section class="card">
+
+            <h2>Nova tarefa</h2>
+
+            <form @submit.prevent="cadastrarTarefa">
+
+                <div class="campo">
+                    <label for="titulo">
+                        Título
+                    </label>
+
+                    <input
+                        id="titulo"
+                        type="text"
+                        v-model="novaTarefa.titulo"
+                        placeholder="Ex.: Estudar Vue.js"
+                    >
+                </div>
+
+                <div class="campo">
+                    <label for="descricao">
+                        Descrição
+                    </label>
+
+                    <textarea
+                        id="descricao"
+                        rows="4"
+                        v-model="novaTarefa.descricao"
+                        placeholder="Descreva a tarefa"
+                    ></textarea>
+                </div>
+
+                <button type="submit">
+                    Cadastrar tarefa
+                </button>
+
+            </form>
+
+        </section>
+
+        <section class="card">
+
+            <div class="topo-lista">
+                <div>
+                    <h2>Tarefas cadastradas</h2>
+
+                    <p class="texto-apoio">
+                        Lista gerada com v-for a partir do estado reativo.
+                    </p>
+                </div>
+
+                <strong>
+                    Total: {{ tarefas.length }}
+                </strong>
+            </div>
+
+            <div
+                v-if="tarefas.length === 0 && !carregando"
+                class="vazio"
+            >
+                Nenhuma tarefa cadastrada.
+            </div>
+
+            <div
+                v-else
+                class="lista-tarefas"
+            >
+
+                <article
+                    v-for="tarefa in tarefas"
+                    :key="tarefa.id"
+                    class="tarefa"
+                    :class="{ 'tarefa-concluida': tarefa.status === 'concluida' }"
+                >
+
+                    <h3>
+                        {{ tarefa.titulo }}
+                    </h3>
+
+                    <p v-if="tarefa.descricao">
+                        {{ tarefa.descricao }}
+                    </p>
+
+                    <p v-else>
+                        Sem descrição.
+                    </p>
+
+                    <span class="status">
+                        Status: {{ tarefa.status }}
+                    </span>
+
+                    <div class="acoes">
+                        <button
+                            type="button"
+                            class="sucesso"
+                            @click="alternarStatus(tarefa)"
+                        >
+                            {{ tarefa.status === 'concluida' ? 'Reabrir' : 'Concluir' }}
+                        </button>
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    tituloPagina: 'Interface reativa com Vue.js',
+                    tarefas: [],
+                    novaTarefa: {
+                        titulo: '',
+                        descricao: ''
+                    },
+                    carregando: false,
+                    erro: ''
+                };
+            },
+
+            mounted() {
+                this.carregarTarefas();
+            },
+
+            methods: {
+                async carregarTarefas() {
+                    this.carregando = true;
+                    this.erro = '';
+
+                    try {
+                        const resposta = await fetch('/api/tarefas');
+
+                        if (!resposta.ok) {
+                            throw new Error(
+                                'Não foi possível carregar as tarefas.'
+                            );
+                        }
+
+                        this.tarefas = await resposta.json();
+                    } catch (erro) {
+                        this.erro = erro.message;
+                    } finally {
+                        this.carregando = false;
+                    }
+                },
+
+                async cadastrarTarefa() {
+                    this.erro = '';
+
+                    const titulo = this.novaTarefa.titulo.trim();
+                    const descricao = this.novaTarefa.descricao.trim();
+
+                    if (!titulo) {
+                        this.erro = 'Informe o título da tarefa.';
+                        return;
+                    }
+
+                    try {
+                        const resposta = await fetch('/api/tarefas', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                titulo,
+                                descricao
+                            })
+                        });
+
+                        const dados = await resposta.json();
+
+                        if (!resposta.ok) {
+                            throw new Error(
+                                dados.erro || 'Erro ao cadastrar tarefa.'
+                            );
+                        }
+
+                        this.tarefas.unshift(dados);
+
+                        this.novaTarefa.titulo = '';
+                        this.novaTarefa.descricao = '';
+                    } catch (erro) {
+                        this.erro = erro.message;
+                    }
+                },
+
+                async alternarStatus(tarefa) {
+                    this.erro = '';
+
+                    try {
+                        const resposta = await fetch(
+                            `/api/tarefas/${tarefa.id}/status`,
+                            {
+                                method: 'PATCH'
+                            }
+                        );
+
+                        const dados = await resposta.json();
+
+                        if (!resposta.ok) {
+                            throw new Error(
+                                dados.erro || 'Erro ao alterar status.'
+                            );
+                        }
+
+                        tarefa.status = dados.status;
+                    } catch (erro) {
+                        this.erro = erro.message;
+                    }
+                }
+            }
+        }).mount('#app');
+    </script>
+
+</body>
+
+</html>
+

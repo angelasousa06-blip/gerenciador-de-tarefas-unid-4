@@ -1,0 +1,20 @@
+{
+  "name": "gerenciador-tarefas",
+  "version": "1.0.0",
+  "description": "Projeto didático da disciplina Desenvolvimento Web III",
+  "main": "server-express.js",
+  "scripts": {
+    "sem-framework": "node server-sem-framework.js",
+    "express": "node server-express.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "mariadb": "^3.5.4",
+    "sequelize": "^6.37.8"
+  }
+}

@@ -1,0 +1,65 @@
+<%- include('partials/header', { tituloPagina }) %>
+
+<main class="container">
+
+    <section class="card">
+
+        <h2>Acesso ao sistema</h2>
+
+        <p class="texto-apoio">
+            Informe seu e-mail e senha para acessar
+            o Gerenciador de Tarefas.
+        </p>
+
+        <% if (erro) { %>
+            <div class="erro">
+                <%= erro %>
+            </div>
+        <% } %>
+
+        <form
+            action="/login"
+            method="POST"
+        >
+
+            <div class="campo">
+                <label for="email">
+                    E-mail
+                </label>
+
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="admin@ifce.edu.br"
+                    required
+                >
+            </div>
+
+            <div class="campo">
+                <label for="senha">
+                    Senha
+                </label>
+
+                <input
+                    type="password"
+                    id="senha"
+                    name="senha"
+                    placeholder="123456"
+                    required
+                >
+            </div>
+
+            <div class="acoes-formulario">
+                <button type="submit">
+                    Entrar
+                </button>
+            </div>
+
+        </form>
+
+    </section>
+
+</main>
+
+<%- include('partials/footer') %>
